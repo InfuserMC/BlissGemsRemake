@@ -9,7 +9,9 @@ import static com.hyperdondon.blissgemsremake.api.util.TimeUtils.*;
 
 import com.hyperdondon.blissgemsremake.blissgems;
 import com.hyperdondon.blissgemsremake.internal.VersionChecker;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -22,12 +24,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.mineacademy.fo.Common;
 import org.mineacademy.fo.remain.Remain;
-
-import static net.md_5.bungee.api.ChatColor.*;
-
-import java.time.Duration;
 
 public final class Powers implements Listener {
     @Getter
@@ -37,34 +34,49 @@ public final class Powers implements Listener {
     public void SingleFrailerPower(EntityDamageByEntityEvent e) {
         if (e.getDamager().getType() != EntityType.PLAYER)
             return;
-
         Player p = (Player) e.getDamager();
         if (!Gem.isGem(p.getInventory().getItemInMainHand()))
             return;
         if (Gem.getGemType(p.getInventory().getItemInMainHand()) != GemType.Strength) //Check if the gem isn't a strength gem
             return;
-        e.setCancelled(true);
+        LivingEntity ent = (LivingEntity) e.getEntity();
+        if (!(ent instanceof Monster))
+            return;
+        //e.setCancelled(true);
         ItemStack gem = p.getInventory().getItemInMainHand();
+        int season = Gem.getGemSeason(gem);
 
         String id = Gem.getGemID(gem, p);
 
         if (!CooldownHandler.canUseCooldown("Power-Frailer:" + id)) {
             String display = CooldownHandler.parseCooldown("Power-Frailer:" + id, "<#F10303>");
-            p.sendMessage(blissgems.advcolorize("<#F10303>🔮 <#FDABAA>Your <white>🤺<#F10303>Frailer <#FDABAA>skill is on cooldown for <#F10303>" + display));
+            if (season < 3)
+                p.sendMessage(blissgems.AdventureColorize(
+                        "<#F10303>🔮 <#FDABAA>Your <white>🤺<#F10303>Frailer <#FDABAA>skill is on cooldown for <#F10303>" + display
+                ));
+            else
+                p.sendMessage(blissgems.AdventureColorize(
+                        "<#F10303>🔮 <#FDABAA>Your <white>🤺<#F10303>Nullify <#FDABAA>skill is on cooldown for <#F10303>" + display
+                ));
             return; //Add cant use power message
         }
 
         CooldownHandler.setCooldown("Power-Frailer:" + id, FromMinutesAndSeconds(4, 0));
 
-        p.sendMessage(
-                blissgems.colorize("#F10303") + "🔮" +
-                        blissgems.colorize("#B8FFFB") + " You have activated " +
-                        blissgems.colorize("<white>") + "🤺" + blissgems.colorize("#F10303") + "Frailer" +
-                        blissgems.colorize("#B8FFFB") + " skill on " + blissgems.colorize("#F10303") + e.getEntity().getName() + blissgems.colorize("&7") + " (radius 5)"
-        );
-
-
-        LivingEntity ent = (LivingEntity) e.getEntity();
+        if (season < 3)
+            p.sendMessage(
+                    blissgems.colorize("#F10303") + "🔮" +
+                            blissgems.colorize("#B8FFFB") + " You have used " +
+                            blissgems.colorize("<white>") + "🤺" + blissgems.colorize("#F10303") + "Frailer" +
+                            blissgems.colorize("#B8FFFB") + " skill on " + blissgems.colorize("#F10303") + e.getEntity().getName() + blissgems.colorize("&7") + " (radius 5)"
+            );
+        else
+            p.sendMessage(
+                    blissgems.colorize("#F10303") + "🔮" +
+                            blissgems.colorize("#B8FFFB") + " You have used " +
+                            blissgems.colorize("<white>") + "🤺" + blissgems.colorize("#F10303") + "Nullify" +
+                            blissgems.colorize("#B8FFFB") + " skill on " + blissgems.colorize("#F10303") + e.getEntity().getName() + blissgems.colorize("&7") + " (radius 5)"
+            );
 
         for (PotionEffect pe : ent.getActivePotionEffects()) ent.removePotionEffect(pe.getType());
 
@@ -134,13 +146,9 @@ public final class Powers implements Listener {
 
 
         CooldownHandler.setCooldown("Power-Frailer:" + id, FromMinutesAndSeconds(4, 0));
-        e.getPlayer().sendMessage(
-                blissgems.colorize("#F10303") + "🔮 " +
-                        blissgems.colorize("#B8FFFB") + "You have activated group " +
-                        blissgems.colorize("<white>") + "🤺" + blissgems.colorize("#F10303") + "Frailer " +
-                        blissgems.colorize("#B8FFFB") + "skill " + blissgems.colorize("&7") + "(radius 5)"
-        );
-
+        e.getPlayer().sendMessage(blissgems.AdventureColorize(
+                "<#F10303>🔮 <#B8FFFB>You have activated group <white>🤺 <#F10303>Frailer <#B8FFFB>skill <gray>(radius 5)"
+        ));
 
         for (Entity entity : e.getPlayer().getNearbyEntities(5, 5, 5))
             if (entity != e.getPlayer()) {
@@ -192,9 +200,9 @@ public final class Powers implements Listener {
             String id = Gem.getGemID(gem, p);
 
 
-            String FrailerString = blissgems.advcolorize("<#F10303>" + "\uD83E\uDD3A" + " " + CooldownHandler.parseCooldown("Power-Frailer:" + id));
+            String FrailerString = blissgems.AdventureColorize("<#F10303>" + "\uD83E\uDD3A" + " " + CooldownHandler.parseCooldown("Power-Frailer:" + id));
 
-            String ChadString = blissgems.advcolorize("<#F10303>" + "⚔" + " " + CooldownHandler.parseCooldown("Power-ChadStrength:" + id));
+            String ChadString = blissgems.AdventureColorize("<#F10303>" + "⚔" + " " + CooldownHandler.parseCooldown("Power-ChadStrength:" + id));
 
 
             Remain.sendActionBar(p, FrailerString + " " + ChadString);
@@ -245,12 +253,19 @@ public final class Powers implements Listener {
         CooldownHandler.setCooldown("Power-ChadStrength:" + id, FromMinutesAndSeconds(4, 0));
 
 
+        /*
         e.getPlayer().sendMessage(
                 blissgems.colorize("&x<white>&1&0&3&0&3") + "🔮" +
                         blissgems.colorize("&x&b&8<white><white><white>&b") + " You have activated group " +
                         blissgems.colorize("<white>") + "🤺" + blissgems.colorize("&x<white>&1&0&3&0&3") + "Chad" +
                         blissgems.colorize("&x&b&8<white><white><white>&b") + " skill" + blissgems.colorize("&7") + " (radius 5)"
         );
+
+         */
+
+        e.getPlayer().sendMessage(blissgems.AdventureColorize(
+                "<#F10303>🔮 <#B8FFFB>You have activated <white>🤺<#F10303>Chad Strength"
+        ));
 
 
         for (Entity entity : e.getPlayer().getNearbyEntities(5, 5, 5))

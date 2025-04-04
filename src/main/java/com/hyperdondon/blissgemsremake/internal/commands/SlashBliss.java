@@ -5,6 +5,7 @@ import com.hyperdondon.blissgemsremake.api.*;
 import com.hyperdondon.blissgemsremake.blissgems;
 import com.hyperdondon.blissgemsremake.internal.PlayerParticlePreferences;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -30,7 +31,6 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, Command command, String s, String[] args) {
-
         if (args.length < 1) {
             Player p = (Player) commandSender;
 
@@ -76,7 +76,8 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
 
                 }
             }.runTaskTimer(blissgems.getInstance(), 0, 20);
-            Bukkit.broadcastMessage(String.valueOf(CooldownHandler.getCooldown("sigma")));
+            //Bukkit.broadcastMessage(String.valueOf(CooldownHandler.getCooldown("sigma")));
+            Bukkit.broadcastMessage("afdad");
             //commandSender.sendMessage(colorize2("&c&fSkibidi #FFD773🔮"));
             //Settings.setSeason(3);
             //Player p = (Player) commandSender;
@@ -153,7 +154,7 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
 
         }
 
-        if (args.length == 4) {
+        if (args.length > 3) {
             if (args[0].equals("gem")) {
                 //Check if the 2nd arg is a player
                 boolean Usage = false;
@@ -169,38 +170,16 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
                     Usage = true;
 
 
-                if (Settings.getSeason() == 3)
-                    if (!args[2].equals("astra") &&
-                            !args[2].equals("fire") &&
-                            !args[2].equals("life") &&
-                            !args[2].equals("puff") &&
-                            !args[2].equals("random") &&
-                            !args[2].equals("speed") &&
-                            !args[2].equals("strength") &&
-                            !args[2].equals("flux") &&
-                            !args[2].equals("wealth"))
-                        Usage = true;
-
-                if (Settings.getSeason() == 2)
-                    if (!args[2].equals("astra") &&
-                            !args[2].equals("fire") &&
-                            !args[2].equals("life") &&
-                            !args[2].equals("puff") &&
-                            !args[2].equals("random") &&
-                            !args[2].equals("speed") &&
-                            !args[2].equals("strength") &&
-                            !args[2].equals("wealth"))
-                        Usage = true;
-
-                if (Settings.getSeason() == 1)
-                    if (!args[2].equals("fire") &&
-                            !args[2].equals("life") &&
-                            !args[2].equals("puff") &&
-                            !args[2].equals("random") &&
-                            !args[2].equals("speed") &&
-                            !args[2].equals("strength") &&
-                            !args[2].equals("wealth"))
-                        Usage = true;
+                if (!args[2].equals("astra") &&
+                        !args[2].equals("fire") &&
+                        !args[2].equals("life") &&
+                        !args[2].equals("puff") &&
+                        !args[2].equals("random") &&
+                        !args[2].equals("speed") &&
+                        !args[2].equals("strength") &&
+                        !args[2].equals("flux") &&
+                        !args[2].equals("wealth"))
+                    Usage = true;
 
                 if (Usage) {
                     commandSender.sendMessage(blissgems.colorize("&cUsage: /bliss gem (player) (type) (tier)"));
@@ -226,7 +205,20 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
                 if (Gem.hasAGem(p))
                     energy = Gem.getPlayerEnergy(p);
 
-                Gem gem = new Gem(type, tier, energy);
+                int season = Settings.getSeason();
+
+                if (args.length > 4) {
+                    try {
+                        // Check if number by catching the error/exception
+                        Integer.parseInt(args[4]);
+                    } catch (NumberFormatException e) {
+                        commandSender.sendMessage(blissgems.colorize("#FFD773\uD83D\uDD2E #FC8888Argument must be an integer/number"));
+                        return true;
+                    }
+                    season = Integer.parseInt(args[4]);
+                }
+
+                Gem gem = new Gem(type, tier, energy, season);
 
                 String gemmessage = "";
                 if (type == GemType.Strength)
@@ -248,6 +240,9 @@ public final class SlashBliss implements CommandExecutor, TabCompleter {
 
                 p.sendMessage(Common.colorize("#FFD773🔮 #B8FFFBYou have given #FFD773" + args[1] + " #B8FFFBa " + gemmessage + "#B8FFFB gem &7Tier &b" + args[3]));
 
+                gem.setId("fb1c4eab-dfae-4302-9441-47026b6d33ae");
+                gem.setAllowdrop(true);
+                gem.setAllowremove(true);
                 Gem.giveGem(gem, p, false, Integer.parseInt(args[3]));
             }
 

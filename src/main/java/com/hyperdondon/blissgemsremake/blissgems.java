@@ -1,6 +1,7 @@
 package com.hyperdondon.blissgemsremake;
 
 import com.hyperdondon.blissgemsremake.api.CooldownHandler;
+import com.hyperdondon.blissgemsremake.api.Settings;
 import com.hyperdondon.blissgemsremake.internal.*;
 import com.hyperdondon.blissgemsremake.internal.commands.SlashBliss;
 import com.hyperdondon.blissgemsremake.internal.gem.Strength.Powers;
@@ -42,6 +43,7 @@ public final class blissgems extends SimplePlugin implements Listener {
 
     @Override
     public void onPluginStart() {
+
     }
 
     public void onPluginStop() {
@@ -67,19 +69,21 @@ public final class blissgems extends SimplePlugin implements Listener {
          */
         //adventure = BukkitAudiences.create(this);
 
-        boolean EnableMetrics = true;
-        try {
-            Class.forName("com.hyperdondon.blissgemsremake.libs.org.bstats.bukkit.Metrics");
-        } catch (ClassNotFoundException e) {
-            Common.error(e, "Are you a developer hotswapping? If you see this and you aren't, please report this bug");
-            EnableMetrics = false;
-        }
-        if (EnableMetrics) {
-            Common.logFramed("Starting bStats metrics.");
-            metrics = new Metrics(this, pluginId);
-        }
-
         plugin = this;
+
+        if (Settings.isMetrics()) {
+            boolean EnableMetrics = true;
+            try {
+                Class.forName("com.hyperdondon.blissgemsremake.libs.org.bstats.bukkit.Metrics");
+            } catch (ClassNotFoundException e) {
+                Common.error(e, "Are you a developer hotswapping? If you see this and you aren't, please report this bug");
+                EnableMetrics = false;
+            }
+            if (EnableMetrics) {
+                Common.logFramed("Starting bStats metrics.");
+                metrics = new Metrics(this, pluginId);
+            }
+        }
 
         Bukkit.getPluginManager().registerEvents(EnchantedObsidian.getInstance(), this);
 
@@ -142,9 +146,13 @@ public final class blissgems extends SimplePlugin implements Listener {
         return s;
     }
 
-    public static String advcolorize(String s) {
-        var sc = MiniMessage.miniMessage().deserialize(s);
-        s = LegacyComponentSerializer.legacySection().serialize(sc);
-        return s;
+    public static String AdventureColorize(String string) {
+        return LegacyComponentSerializer.legacySection().serialize(
+                MiniMessage.miniMessage().deserialize(string)
+        );
+    }
+
+    public static String AdventureColorize(String... messages) {
+        return AdventureColorize(String.join("\n", messages));
     }
 }
